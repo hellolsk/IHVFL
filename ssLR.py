@@ -13,7 +13,6 @@ def normalization(data):
     return (data - mu) / std
 
 
-# 加载数据
 def load_data(file_name):
     df = pd.read_csv(file_name)
     # diabetes 8*features
@@ -28,25 +27,22 @@ def load_data(file_name):
 
     # print(features[0])
     ones = np.ones(shape=fg.shape[0])
-    # np.c_按行链接矩阵
     fg = np.c_[fg, ones]
     # print("features:", features[0])
     # print('fixed features shape: ', features_g.shape)
 
-    # 随机划分训练集和测试集
     fg_train,fg_test,fh_train,fh_test=train_test_split(fg,fh,test_size=0.3,random_state=1)
     
     # labels minst
     labels = np.squeeze(df.iloc[:, -1].to_numpy().reshape(1, -1))
     # labels = np.squeeze(df.iloc[:, -1:].to_numpy().reshape(1, -1))
     # labels = normalization(labels)
-    # 变为1和-1
     # labels = labels*2-1
     labels_train,labels_test = train_test_split(labels,test_size=0.3,random_state=1)
     # print('labels shape: ', labels.shape)
     return fg_test,fg_train, fh_test,fh_train, labels_test,labels_train
 
-# 批量读取数据
+
 def data_iter(batch_size, x1, x2, y):
     num_examples = len(y)
     indices = list(range(num_examples))
@@ -72,7 +68,6 @@ def compute_gradient(pk,sk,X1,X2, y, w1,w2):
     e = sigmoid(np.dot(X1, w1)+np.dot(X2,w2)) - y
     grad1 = np.dot(X1.T,e)
     pk_e = np.asarray([pk.encrypt(m) for m in e])
-    # 随机数没加
     pk_ed = np.asarray([sk.decrypt(m) for m in pk_e])
     # pk_ed = e
     grad2 = np.dot(X2.T, pk_ed)
@@ -81,10 +76,9 @@ def compute_gradient(pk,sk,X1,X2, y, w1,w2):
     return grad1,grad2
 
 
-# 训练
+
 def fit(X1,X2, y,fg_test,fh_test,labels_test):
     print('fit start')
-    # 初始化模型参数
     np.random.seed(1)
     losslist=[]
     acclist=[]
@@ -92,7 +86,6 @@ def fit(X1,X2, y,fg_test,fh_test,labels_test):
     w1 = np.ones(X1.shape[1])
     w2 = np.ones(X2.shape[1])
     pk,sk = paillier.generate_paillier_keypair(n_length=1024)
-    # 开始训练
     batch_size = 32
     learning_rate = 0.05
     iter_max = 30
@@ -124,7 +117,6 @@ def fit(X1,X2, y,fg_test,fh_test,labels_test):
     return w1,w2,losslist,acclist,auclist
 
 
-# 预测
 def predict(X1,X2, y, w1,w2):
     count = 0
     pred = sigmoid(np.dot(X1, w1)+np.dot(X2, w2))
