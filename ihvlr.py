@@ -107,10 +107,6 @@ def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
     uc_22, uc_21 = ssm.ssm(pk,sk,bx_c2, wc)
     u1 = uc_1+us_11+uc_21
     u2 = us_2+us_12+uc_22
-    # print("u:", u1+u2)
-    # print("u1:",u1.shape)
-    # print("bx_c1:",bx_c1.shape)
-    # print("u1-by1:", (u1-by1).shape)
 
     gc_11 = np.dot(u1-2*by1, bx_c1)
     # print("gc_11.shape:",gc_11.shape)
@@ -142,18 +138,8 @@ def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
 
 def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
     print('fit start')
-
-    # np.random.seed(1)
-    # wc(202,1)
-    # xc_1(11982, 202)
-    # uc_1.shape (11982,1)
-    # us_1.shape: (11982,1)
     wc = np.ones(x_c1.shape[1])
     ws = np.ones(x_s1.shape[1])
-    # print("ws:",ws.shape)
-    # wc = np.zeros([202,1])
-    # ws = np.zeros([583,1])
-    # print("w:", w)
 
     batch_size = 32
     learning_rate = 0.05
@@ -180,18 +166,10 @@ def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
                 bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws)
             # print("gc_1.shape:",gc_1.shape)
             gc = (gc_1+gc_2)
-            # print("gc:",gc)
-            # print("wc:", wc)
-            # print("wc.shape:",wc.shape)
-            # print("gc:",gc.shape)
             gs = (gs_1+gs_2)
             # print("grad:", grad)
             wc -= learning_rate*(gc)
             ws -= learning_rate*(gs)
-            # wc_1 -= learning_rate * gc_1
-            # ws_1 -= learning_rate * gs_1
-            # wc_2 -= learning_rate * gc_2
-            # ws_2 -= learning_rate * gs_2
         # print("i:", i)
         time_losse = time.time()
         print("each peoch:", time_losse-time_losss)
