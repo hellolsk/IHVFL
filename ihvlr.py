@@ -14,20 +14,18 @@ from sklearn.model_selection import train_test_split
     log2 = 0.3010299956639812
 '''
 
-# 标准化
+
 def normalization(data):
     mu = data.mean(axis=0)
     std = data.std(axis=0)
     return (data - mu) / std
-# 1,加载数据
+
 
 def load_data(file_name):
     df = pd.read_csv(file_name)
     # diabetes 8*features
     # fg = df.iloc[:, :4].to_numpy()
     # fh = df.iloc[:, 4:-1].to_numpy()
-
-    # 2,breast-cancer 10+20划分
     fg = df.iloc[:, :10].to_numpy()
     fh = df.iloc[:, 10:-1].to_numpy()
     print("-----",fg.shape,fh.shape)
@@ -39,19 +37,16 @@ def load_data(file_name):
 
     # print(features[0])
     ones = np.ones(shape=fg.shape[0])
-    # np.c_按行链接矩阵
     fg = np.c_[fg, ones]
     # print("features:", features[0])
     # print('fixed features shape: ', features_g.shape)
 
-    # 随机划分训练集和测试集
     fg_train,fg_test,fh_train,fh_test=train_test_split(fg,fh,test_size=0.3,random_state=1)
     
     # labels minst
     labels = np.squeeze(df.iloc[:, -1].to_numpy().reshape(1, -1))
     # labels = np.squeeze(df.iloc[:, -1:].to_numpy().reshape(1, -1))
     # labels = normalization(labels)
-    # 变为1和-1
     labels = labels*2-1
     labels_train,labels_test = train_test_split(labels,test_size=0.3,random_state=1)
 
@@ -59,14 +54,12 @@ def load_data(file_name):
     return fg_test,fg_train, fh_test,fh_train, labels_test,labels_train
 
 
-# 3，秘密共享
 def ss(xg, xh, y):
     x_c1, x_c2 = ass.ass(xg, xg.shape[0], xg.shape[1])
     x_s1, x_s2 = ass.ass(xh, xh.shape[0], xh.shape[1])
     y1, y2 = ass.asslist(y, len(y))
     return x_c1, x_c2, x_s1, x_s2, y1, y2
 
-# 批量读取数据
 def data_iter(batch_size, x_c1, x_c2, x_s1, x_s2, y1, y2):
     num_examples = len(y1)
     indices = list(range(num_examples))
@@ -76,47 +69,40 @@ def data_iter(batch_size, x_c1, x_c2, x_s1, x_s2, y1, y2):
         batch_indices = indices[i:i+batch_size]
         yield x_c1[batch_indices], x_c2[batch_indices], x_s1[batch_indices], x_s2[batch_indices], y1[batch_indices], y2[batch_indices]
 
-# sigmoid
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
-# 全部数据计算损失，只更新w
 def compute_loss(x_c1, x_c2, x_s1, x_s2, y1, y2, wc, ws):
-    # wc(202,1)
     uc_1 = np.dot(x_c1, wc)
-    # 交互
+
     us_1 = np.dot(x_s1, ws)
     u1 = uc_1+us_1
-
-    # 交互
     uc_2 = np.dot(x_c2, wc)
     us_2 = np.dot(x_s2, ws)
 
     u2 = uc_2+us_2
-    # print("u2",u2)
+
     L1 = y1*u1+y1*u2
     L2 = y2*u2+y2*u1
-    # print("L2",L2)
+
     loss = np.sum(np.log(2)-1/2*(L1+L2)+1/8*(u1+u2)*(u1+u2))
     loss /= len(y1)
     return loss
 
 
-# 计算梯度
+
 def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
 
     uc_1 = np.dot(bx_c1, wc)
     # print("bx_c1.shape:",bx_c1.shape)
 
-    # 【明文】
     # us_1 = np.dot(bx_s1, ws)
     # u1 = uc_1+us_1
 
     us_2 = np.dot(bx_s2, ws)
     # uc_2 = np.dot(bx_c2, wc)
 
-    # 【交互ssm】
     us_11, us_12 = ssm.ssm(pk,sk,bx_s1, ws)
     uc_22, uc_21 = ssm.ssm(pk,sk,bx_c2, wc)
     u1 = uc_1+us_11+uc_21
@@ -125,8 +111,7 @@ def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
     # print("u1:",u1.shape)
     # print("bx_c1:",bx_c1.shape)
     # print("u1-by1:", (u1-by1).shape)
-    # 梯度
-    # c:收到s的u-y
+
     gc_11 = np.dot(u1-2*by1, bx_c1)
     # print("gc_11.shape:",gc_11.shape)
     gc_121, gc_122 = ssm.ssmv(pk,sk,u1-2*by1, bx_c2)
@@ -138,7 +123,7 @@ def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
     # print("gc_1.shape:",gc_1.shape)
 
     gs_11 = np.dot(u2-2*by2, bx_s2)
-    # s:收到c的u-y
+
     gs_211, gs_212 = ssm.ssmv(pk,sk,u2-2*by2, bx_s1)
    
     gs_22 = np.dot(u1-2*by1, bx_s1)
@@ -154,10 +139,10 @@ def compute_gradient(pk,sk,bx_c1, bx_c2, bx_s1, bx_s2, by1, by2, wc, ws):
     return gc_1, gc_2, gs_1, gs_2
 
 
-# 训练
+
 def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
     print('fit start')
-    # 初始化模型参数
+
     # np.random.seed(1)
     # wc(202,1)
     # xc_1(11982, 202)
@@ -169,7 +154,7 @@ def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
     # wc = np.zeros([202,1])
     # ws = np.zeros([583,1])
     # print("w:", w)
-    # 开始训练
+
     batch_size = 32
     learning_rate = 0.05
     iter_max = 30
@@ -183,7 +168,6 @@ def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
         old_loss = loss
         loss = compute_loss(x_c1, x_c2, x_s1, x_s2, y1, y2, wc, ws)
         losslist.append(loss)
-        # fortmat函数 f''
         print(f'current loss: {loss}')
         # if abs(loss-old_loss) <= 1e-5:
         #     print(f'loss <= 1e-5, fit finish')
@@ -224,7 +208,7 @@ def fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test):
     return wc, ws, losslist, acclist, auclist
 
 
-# 预测.......
+
 def predict(xg_test, xh_test, y_test, wc, ws):
     count = 0
     pred = sigmoid(np.dot(xg_test, wc)+np.dot(xh_test, ws))
