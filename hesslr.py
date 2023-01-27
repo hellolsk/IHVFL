@@ -96,8 +96,6 @@ def compute_gradient(pk,sk,X1,X2, y, w11,w12,w21,w22):
 
     z2 = z22+z122+z212
     z = z1_e+z2
-    # print("------z2------",z2)
-    # print("-----z------",z)
     # z_3e = z1_e3+3*z1_e2*z2+3*z1_e*z2*z2+z2*z2*z2
     # y_hat = 0.5+0.197*z-0.004*z_3e
     y_hat = 0.5+0.125*z
