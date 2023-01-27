@@ -238,7 +238,7 @@ if __name__ == '__main__':
     t1 = time.time()
     wc, ws, losslist, acclist, auclist = fit(pk,sk,x_c1, x_c2, x_s1, x_s2, y1, y2,f_g_test,f_h_test,labels_test)
     t2 = time.time()
-    print(f'耗时：{t2-t1:.3f}s')
+    print(f'cost：{t2-t1:.3f}s')
     print("losslist:", losslist)
     print("acclsit:", acclist)
     print("auclist:", auclist)
