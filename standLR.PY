@@ -137,7 +137,7 @@ if __name__ == '__main__':
     X_train,X_test,y_train,y_test = prepare_data('breast_cancer.csv')
     t1 = time.time()
     w,losslist, acclist, auclist,f1list= fit(X_train, y_train,X_test,y_test)
-    print(f'耗时：{time.time()-t1:.3f}s')
+    print(f'cost：{time.time()-t1:.3f}s')
     print('w', w)
 
     print("losslist:", losslist)
