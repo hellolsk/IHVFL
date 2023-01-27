@@ -132,7 +132,7 @@ if __name__ == '__main__':
     w1,w2,losslist,acclist,auclist = fit(fg_train, fh_train,labels_train,fg_test,fh_test,labels_test)
     print("w1:",w1)
     print("w2:",w2)
-    print(f'耗时：{time.time()-t1:.3f}s')
+    print(f'cost：{time.time()-t1:.3f}s')
     # predict_result = predict(fg_test, fh_test,labels_test, w1,w2)
     # print(f'predict_result: {predict_result}%')
 
