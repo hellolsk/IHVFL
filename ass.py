@@ -12,7 +12,7 @@ def ass(x,n,m):
     # print("x1.shape:",x_1.shape)
     # print("x2.shape:", x_2.shape)
     return x_1,x_2
-# 必须对整数进行秘密共享，非整数要扩充
+
 def getAdditiveShares(secret, fieldSize):
     '''Generate N additive shares from 'secret' in finite field of size 'fieldSize'.'''
 
@@ -34,7 +34,6 @@ def reconstructSecret(x_1,x_2, fieldSize):
     return secret
 
 def matrixShares(matrix,n,m,fieldSize):
-    # 定义n行m列数组
     x_1 = [[0] * m for _ in range(n)]
     x_2 = [[0] * m for _ in range(n)]
     i = 0
